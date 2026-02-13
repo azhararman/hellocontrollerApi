@@ -1,9 +1,9 @@
 pipeline {
-    agent any
-
-    environment {
-        IMAGE_NAME = "demo-api"
-        CONTAINER_NAME = "demo-api"
+    agent {
+        docker {
+            image 'maven:3.9.1-openjdk-17'
+            args '-v /root/.m2:/root/.m2'
+        }
     }
 
     stages {
@@ -21,21 +21,21 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh 'docker build -t demo-api .'
             }
         }
 
         stage('Docker Run') {
             steps {
-                sh 'docker stop $CONTAINER_NAME || true'
-                sh 'docker rm $CONTAINER_NAME || true'
-                sh 'docker run -d -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME'
+                sh 'docker stop demo-api || true'
+                sh 'docker rm demo-api || true'
+                sh 'docker run -d -p 8080:8080 --name demo-api demo-api'
             }
         }
 
         stage('Verify') {
             steps {
-                sh 'echo "Pipeline completed. Access your app at http://localhost:8080/hello"'
+                sh 'echo "Pipeline finished. Visit http://localhost:8080/hello"'
             }
         }
     }
