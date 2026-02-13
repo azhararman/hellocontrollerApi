@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.1-eclipse-temurin-17'
-            args '-v $HOME/.m2:/root/.m2 -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         DOCKER_IMAGE = "demo-api"
@@ -16,28 +11,28 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                // Pull the project from Git
                 git branch: 'main', url: 'https://github.com/azhararman/hellocontrollerApi.git'
             }
         }
 
-        stage('Build Maven') {
+        stage('Build with Maven (Docker)') {
             steps {
-                echo "Building Spring Boot project with Maven..."
-                sh 'mvn clean package -DskipTests'
+                script {
+                    docker.image('maven:3.9.1-eclipse-temurin-17').inside('-v $HOME/.m2:/root/.m2') {
+                        sh 'mvn clean package -DskipTests'
+                    }
+                }
             }
         }
 
         stage('Docker Build') {
             steps {
-                echo "Building Docker image..."
                 sh "docker build -t $DOCKER_IMAGE ."
             }
         }
 
         stage('Stop Existing Container') {
             steps {
-                echo "Stopping any running container..."
                 sh "docker stop $CONTAINER_NAME || true"
                 sh "docker rm $CONTAINER_NAME || true"
             }
@@ -45,7 +40,6 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                echo "Running Docker container..."
                 sh "docker run -d -p $APP_PORT:8080 --name $CONTAINER_NAME $DOCKER_IMAGE"
             }
         }
