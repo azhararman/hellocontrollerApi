@@ -11,7 +11,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/azhararman/hellocontrollerApi.git'
+                git branch: 'v2', url: 'https://github.com/azhararman/hellocontrollerApi.git'
             }
         }
 
